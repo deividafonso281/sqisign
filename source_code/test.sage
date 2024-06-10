@@ -1,4 +1,5 @@
 from sage.all import *
+from verify_signature import verify_signature
 
 public_key_bytes = 64
 
@@ -49,3 +50,6 @@ for i in range(1,len(test_cases_text)-1):
 	sm = test_case[7].split(" ")
 	test_cases_obj.append(TestCase(int(count[2]),seed[2],int(mlen[2]),msg[2],pk[2],sk[2],int(smlen[2]),sm[2]))
 	test_cases_obj[-1].pk_hex_to_complex()
+
+
+verify_signature(test_cases_obj[0].sm,test_cases_obj[0].pk,test_cases_obj[0].msg)
