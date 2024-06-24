@@ -1,7 +1,9 @@
 from sage.all import *
-from finite_field import *
 from sqisign_parameters import *
 from aux import *
+from fp2 import *
+from fp import *
+from ec import *
 
 SIGNATURE_SIZE = 177
 ZIP_SIZE = 141
@@ -48,36 +50,48 @@ def complete_basis(curve, point, xcord=1):
 
 def torsion_basis(curve):
 
-    A24 = (curve[0]+fp2_mul(2+0*im_unity,curve[1]),fp2_mul(4+0*im_unity,curve[1]))
+    twoc = fp2_add(curve[1],curve[1])
+    A24 = (fp2_add(curve[0],twoc),fp2_add(twoc,twoc))
 
-    xcord = fiat_p1913_set_one()  + 0*im_unity
+    xcord = fp2_t(fiat_p1913_set_one(),0)
     found = 0
 
     while found == 0:
         counter = 0
-        xcord = xcord + fiat_p1913_set_one()*im_unity
+        xcord = fp2_add(xcord,fp2_t(0,fiat_p1913_set_one()))
         c2 = fp2_sqr(curve[1])
-        t1 = fp2_mul((fp2_mul((fp2_mul(xcord,c2)+fp2_mul(curve[0],curve[1])),xcord)+c2),xcord)
+        t0 = fp2_mul(xcord,c2)
+        t2 = fp2_add(t0,fp2_mul(curve[0],curve[1]))
+        t3 = fp2_mul(t2,xcord)
+        t1 = fp2_mul(fp2_add(t3,c2),xcord)
         if fp2_is_square(t1):
-            point = (xcord,fiat_p1913_set_one()+0*im_unity)
-            point = mult_scalar_point(point,p_cofactor_for_2f,A24)
-            print_word(re(point[0]))
-            print_word(im(point[0]))
-            d_point = point 
-            while counter < 75 and d_point[1] != 0:
-                counter = counter + 1
+            point = (xcord,fp2_t(fiat_p1913_set_one(),0))
+            point = xMULv2(point,p_cofactor_for_2f,A24)
+            d_point = point
+            for i in range(74):
                 d_point = double_point(d_point, A24)
-            if counter == 75:
+            if d_point[1].re != 0 and d_point[1].im != 0:
                 found = 1
     
-    #print("xcord point")
-    #print_word(re(point[0]))
-    #print_word(im(point[0]))
-    #print("zcord point")
-    #print_word(re(point[1]))
-    #print_word(im(point[1]))
-    #complete_basis(curve,basis1,xcord)
+    found = 0
+    while found == 0:
+        xcord = fp2_add(xcord,fp2_t(0,fiat_p1913_set_one()))
 
+        t0 = fp2_mul(xcord,c2)
+        t2 = fp2_add(t0,fp2_mul(curve[0],curve[1]))
+        t3 = fp2_mul(t2,xcord)
+        t1 = fp2_mul(fp2_add(t3,c2),xcord)
+        if fp2_is_square(t1):
+            point2 = (xcord, fp2_t(fiat_p1913_set_one(),0))
+            point2 = xMULv2(point2,p_cofactor_for_2f,A24)
+            d_point2 = point2
+            for i in range(74):
+                d_point2 = double_point(d_point2,A24)
+            if d_point[1].re != 0 and d_point[1].im != 0:
+                if is_point_equal(point,point2) == False:
+                    found = 1
+    point2[0].print_fp2()
+    point2[1].print_fp2()
     return 0
 
 
